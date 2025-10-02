@@ -49,7 +49,7 @@ actor AuthManager {
     init(service: AuthServiceProtocol) {
         self.service = service
         // 初期状態を非同期で設定
-//        Task { await checkAuthStatus() }
+        //        Task { await checkAuthStatus() }
     }
     
     func createStream() -> (id: UUID, stream: AsyncStream<State>) {
@@ -107,16 +107,16 @@ actor AuthManager {
 final class SharedDependencies {
     static let shared = SharedDependencies(authService: AuthService())
     let authManager: AuthManager
-//    lazy var authManager: AuthManager = AuthManager(
-//        service: AuthService()
-//    )
-//     他の共通サービスやマネージャー（BillingManager, AdManagerなど）を追加
-     private init(
+    //    lazy var authManager: AuthManager = AuthManager(
+    //        service: AuthService()
+    //    )
+    //     他の共通サービスやマネージャー（BillingManager, AdManagerなど）を追加
+    private init(
         authService: AuthServiceProtocol
     ) {
         self.authManager = AuthManager(service: authService)
     }
-        // テスト用のイニシャライザ
+    // テスト用のイニシャライザ
     static func mock(authService: AuthServiceProtocol) -> SharedDependencies {
         SharedDependencies(authService: authService)
     }
@@ -144,7 +144,7 @@ actor StringManager {
     
     private let service: StringServiceProtocol
     
-//    init(service: StringServiceProtocol = StringService()) {
+    //    init(service: StringServiceProtocol = StringService()) {
     init(service: StringServiceProtocol) {
         self.service = service
     }
@@ -199,7 +199,7 @@ final class StringViewModel: ObservableObject {
     private var stringStreamID: UUID?
     private var authStreamID: UUID?
     private var observeTask: [Task<Void, Never>] = []
- 
+    
     init(stringManager: StringManager, authManager: AuthManager) {
         self.stringManager = stringManager
         self.authManager = authManager
@@ -221,7 +221,7 @@ final class StringViewModel: ObservableObject {
                 self.updateStringUI(with: state)
             }
         })
-            
+        
         // AuthManagerの監視
         observeTask.append(Task { [weak self] in
             guard let self else { return }
@@ -236,7 +236,7 @@ final class StringViewModel: ObservableObject {
     
     private func updateStringUI(with state: LoadState<String>) {
         switch state {
-            case .idle:
+        case .idle:
             isLoading = false
             errorMessage = nil
         case .loading:
@@ -246,7 +246,7 @@ final class StringViewModel: ObservableObject {
             isLoading = false
             displayString = str
             errorMessage = nil
-            case .failure(let error):
+        case .failure(let error):
             isLoading = false
             errorMessage = mapErrorToMessage(error)
         }
@@ -334,47 +334,47 @@ struct ContentView: View {
         .navigationBarTitle(Text("ASM-F Example"))
         .padding()
     }
+}
+
+// MARK: - 11. アプリ固有DIコンテナ(AppDependencis - Factory)
+/// アプリ固有の依存関係を管理しSharedDependenciesも利用
+@MainActor
+final class AppDependencies {
+    // アプリ固有のManager
+    let stringManager: StringManager
     
-    // MARK: - 11. アプリ固有DIコンテナ(AppDependencis - Factory)
-    /// アプリ固有の依存関係を管理しSharedDependenciesも利用
-    @MainActor
-    final class AppDependencies {
-        // アプリ固有のManager
-        let stringManager: StringManager
-        
-        // 共通の依存関係
-        let shared: SharedDependencies
-        
-        init() {
-            self.stringManager = StringManager(service: StringService())
-            self.shared = SharedDependencies.shared
-        }
-        
-        // ViewModelを生成するファクトリーメソッド
-        func makeStringViewModel() -> StringViewModel {
-            StringViewModel(
-                stringManager: stringManager,
-                authManager: shared.authManager // SharedDependenciesからAuthManagerを注入
-            )
-        }
+    // 共通の依存関係
+    let shared: SharedDependencies
+    
+    init() {
+        self.stringManager = StringManager(service: StringService())
+        self.shared = SharedDependencies.shared
     }
     
-    // 他のビューモデルが必要になったらここに追加
-    // func makeAnotherViewModel() -> AnotherViewModel { ...
+    // ViewModelを生成するファクトリーメソッド
+    func makeStringViewModel() -> StringViewModel {
+        StringViewModel(
+            stringManager: stringManager,
+            authManager: shared.authManager // SharedDependenciesからAuthManagerを注入
+        )
+    }
+}
+
+// 他のビューモデルが必要になったらここに追加
+// func makeAnotherViewModel() -> AnotherViewModel { ...
+
+// MARK: - 12. App Entry Point (for SwiftUI App struct)
+@main
+struct StringApp: App {
+    // アプリ固有のDIコンテナを生成
+    //SharedDependenciesはAppDependencies内で自動的に.sharedが使われる
+    let dependencies = AppDependencies()
     
-    // MARK: - 12. App Entry Point (for SwiftUI App struct)
-    @main
-    struct StringApp: App {
-        // アプリ固有のDIコンテナを生成
-        //SharedDependenciesはAppDependencies内で自動的に.sharedが使われる
-        let dependencies = AppDependencies()
-        
-        var body: some Scene {
-            WindowGroup {
-                NavigationStack {
-                    // AppDependenciesからViewModelを生成してViewに注入
-                    ContentView(viewModel: dependencies.makeStringViewModel())
-                }
+    var body: some Scene {
+        WindowGroup {
+            NavigationStack {
+                // AppDependenciesからViewModelを生成してViewに注入
+                ContentView(viewModel: dependencies.makeStringViewModel())
             }
         }
     }
