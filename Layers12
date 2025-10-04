@@ -1,0 +1,15 @@
+# ASM-F (ActorStream MVVM with Factories & SharedDependencies)
+
+レイヤー説明
+汎用的な状態管理 (LoadState): アプリ全体で利用される、データ読み込み状態を表現する汎用Enum。
+共通サービス層 (Shared Service Protocols): 複数アプリで再利用可能な共通機能のプロトコル定義。
+共通サービス実装 (Shared Service Implementations): 共通サービスプロトコルの具体的な実装。
+共通マネージャー層 (Shared Managers - Actor + AsyncStream): 共通サービスを利用し、AsyncStreamで状態を配信するactor。
+共通DIコンテナ (SharedDependencies): アプリ間で共有される共通マネージャーのインスタンスを管理するシングルトン。
+アプリ固有サービス層 (App-Specific Service Protocols): 特定のアプリに特化した機能のプロトコル定義。
+アプリ固有サービス実装 (App-Specific Service Implementations): アプリ固有サービスプロトコルの具体的な実装。
+アプリ固有マネージャー層 (App-Specific Managers - Actor + AsyncStream): アプリ固有サービスを利用し、AsyncStreamで状態を配信するactor。
+アプリ固有ViewModel層 (@MainActor): Viewに表示するデータを管理し、Managerからの状態変化を@PublishedでViewに通知する@MainActorクラス。
+アプリ固有View層: SwiftUIのViewで、ViewModelの@Publishedプロパティを監視し、UIを構築・更新する。
+アプリ固有DIコンテナ (AppDependencies - Factory): アプリ固有のマネージャーやViewModelの生成を管理し、SharedDependenciesも利用する。
+App Entry Point: アプリケーションのエントリーポイント。AppDependenciesを初期化し、ルートViewにViewModelを注入する。
