@@ -19,6 +19,7 @@
 - 中規模プロジェクトでも見通し良く拡張できる
 - テスト容易性（モック差し替え可能）を重視
 - Swift 6 の strict concurrency に準拠
+- protocolも規模に応じて利用
 
 ## 参考
 - エラー対応: https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call/
