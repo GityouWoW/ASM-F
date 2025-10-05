@@ -24,7 +24,6 @@ ViewModelでのUI状態管理を簡潔にする
 役割: 複数アプリで再利用可能な共通機能のプロトコル定義
 swift
 
-Copy
 protocol AuthServiceProtocol: Sendable {
     func isAuthenticated() async throws -> Bool
     func login() async throws
@@ -39,7 +38,6 @@ async throwsで非同期エラー処理
 役割: 共通サービスプロトコルの具体的な実装
 swift
 
-Copy
 struct AuthService: AuthServiceProtocol {
     func isAuthenticated() async throws -> Bool {
         // 実装
@@ -58,7 +56,6 @@ struct AuthService: AuthServiceProtocol {
 役割: 共通サービスを利用し、AsyncStreamで状態を配信するactor
 swift
 
-Copy
 actor AuthManager {
     typealias State = LoadState<Bool>
     
@@ -113,7 +110,6 @@ yieldToAllで全リスナーに一斉配信
 役割: アプリ間で共有される共通マネージャーのインスタンスを管理するシングルトン
 swift
 
-Copy
 @MainActor
 final class SharedDependencies {
     static let shared = SharedDependencies(authService: AuthService())
@@ -143,7 +139,6 @@ private initでインスタンス生成を制御
 役割: 特定のアプリに特化した機能のプロトコル定義
 swift
 
-Copy
 protocol StringServiceProtocol: Sendable {
     func fetchString() async throws -> String
 }
@@ -155,7 +150,6 @@ protocol StringServiceProtocol: Sendable {
 役割: アプリ固有サービスプロトコルの具体的な実装
 swift
 
-Copy
 struct StringService: StringServiceProtocol {
     func fetchString() async throws -> String {
         try await Task.sleep(nanoseconds: 1_000_000_000)
@@ -170,7 +164,6 @@ struct StringService: StringServiceProtocol {
 役割: アプリ固有サービスを利用し、AsyncStreamで状態を配信するactor
 swift
 
-Copy
 actor StringManager {
     typealias State = LoadState<String>
     
@@ -188,7 +181,6 @@ actor StringManager {
 役割: Viewに表示するデータを管理し、Managerからの状態変化を@PublishedでViewに通知する@MainActorクラス
 swift
 
-Copy
 @MainActor
 final class StringViewModel: ObservableObject {
     @Published var displayString: String = "Press the button to fetch string."
@@ -282,7 +274,6 @@ CancellationErrorを含む全エラーを適切に処理
 役割: SwiftUIのViewで、ViewModelの@Publishedプロパティを監視し、UIを構築・更新する
 swift
 
-Copy
 struct ContentView: View {
     @StateObject private var viewModel: StringViewModel
     
@@ -335,7 +326,6 @@ ViewModelの状態に応じた宣言的UI構築
 役割: アプリ固有のマネージャーやViewModelの生成を管理し、SharedDependenciesも利用する
 swift
 
-Copy
 @MainActor
 final class AppDependencies {
     let stringManager: StringManager
@@ -365,7 +355,6 @@ SharedDependencies.sharedを参照
 役割: アプリケーションのエントリーポイント。AppDependenciesを初期化し、ルートViewにViewModelを注入する
 swift
 
-Copy
 @main
 struct StringApp: App {
     let dependencies = AppDependencies()
@@ -421,7 +410,7 @@ App Entry Pointで使用 (Layer 12): NewFeatureView(viewModel: dependencies.make
 
 
 
-旧アーキテクチャプロンプト:
+### 旧アーキテクチャプロンプト:
 私は SwiftUI アプリを ASM-F (ActorStream MVVM with Factories & SharedDependencies) というアーキテクチャで構築しています。
 基本構造: ActorStream MVVM (ASM)
 actor + AsyncStream で状態管理
