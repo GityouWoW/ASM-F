@@ -429,3 +429,4 @@ SharedDependencies:
 Swift 6 の strict concurrency に準拠
 
 エラー参考: https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call/
+Type alias cannot be declared public because its underlying type uses an internal type
