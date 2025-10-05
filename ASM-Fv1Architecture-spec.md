@@ -1,8 +1,9 @@
-# レイヤー構造（12層）
+# ASM-F プロンプト
 
 ## 概要
 ASM-F (ActorStream MVVM with Factories & SharedDependencies) は、Swift 6の並行性機能を活用した12層のアーキテクチャです。`actor`と`AsyncStream`による状態管理、DIコンテナによる依存性注入、共有依存関係の効率的な管理を特徴とします。
 
+## レイヤー構造（12層）
 
 ### 1. 汎用的な状態管理 (LoadState)
 **役割**: アプリ全体で利用される、データ読み込み状態を表現する汎用Enum
