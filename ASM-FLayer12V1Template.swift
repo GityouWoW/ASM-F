@@ -3,7 +3,8 @@
 import SwiftUI
 import Combine
 
-// 変更点: ジェネリックな読み込み状態。アプリ全体で共通利用。
+// 1. 汎用的な状態管理
+/// ジェネリックな読み込み状態。アプリ全体で共通利用。
 public enum LoadState<Value>: Sendable {
     case idle
     case loading
@@ -16,14 +17,16 @@ public enum LoadState<Value>: Sendable {
     }
 }
 
-// 変更点: Sendable 準拠、async throws で Swift 6 並行性対応。
+// 2. 共通サービス層: SharedServiceProtocol
+/// Sendable 準拠、async throws で Swift 6 並行性対応。
 public protocol AuthServiceProtocol: Sendable {
     func isAuthenticated() async throws -> Bool
     func login() async throws
     func logout() async throws
 }
 
-// 変更点: サンプル実装。実サービス置換容易に。
+// 3. 共通サービス実装: SharedService
+/// サンプル実装。実サービス置換容易に。
 public struct AuthService: AuthServiceProtocol {
     public init() {}
 
@@ -43,7 +46,8 @@ public struct AuthService: AuthServiceProtocol {
     }
 }
 
-// 変更点: actor で排他、AsyncStream で配信。continuation 管理を厳密化。
+// 4. 共通マネージャー層
+/// actor で排他、AsyncStream で配信。continuation 管理を厳密化。
 public actor AuthManager {
     public typealias State = LoadState<Bool>
 
@@ -127,9 +131,9 @@ public actor AuthManager {
     }
 }
 
-
-// 変更点: @MainActor で UI スレッド初期化安全性を担保。
-// init 中に actor メソッドを呼ばず、作成後に Task で start() を指示。
+// 5. 共通DIYコンテナ
+/// @MainActor で UI スレッド初期化安全性を担保。
+/// init 中に actor メソッドを呼ばず、作成後に Task で start() を指示。
 @MainActor
 public final class SharedDependencies {
     public static let shared = SharedDependencies(authService: AuthService())
@@ -152,10 +156,12 @@ import Foundation
 import SwiftUI
 import Combine
 
+// 6. アプリ固有サービス層
 public protocol StringServiceProtocol: Sendable {
     func fetchString() async throws -> String
 }
 
+// 7. アプリ固有サービス実装
 public struct StringService: StringServiceProtocol {
     public init() {}
     public func fetchString() async throws -> String {
@@ -164,6 +170,7 @@ public struct StringService: StringServiceProtocol {
     }
 }
 
+// 8. アプリ固有マネージャー層
 public actor StringManager {
     public typealias State = LoadState<String>
 
@@ -219,8 +226,9 @@ public actor StringManager {
     }
 }
 
-// 変更点: init 中で actor-isolated メソッドを呼ばず、startObserving() は自分自身(@MainActor)のメソッドなのでOK。
-// strict concurrency: UI 更新は @MainActor 上で実行。
+// 9. アプリ固有UI層ViewModel層
+/// init 中で actor-isolated メソッドを呼ばず、startObserving() は自分自身(@MainActor)のメソッドなのでOK。
+/// strict concurrency: UI 更新は @MainActor 上で実行。
 @MainActor
 public final class StringViewModel: ObservableObject {
     @Published public private(set) var displayString: String = "Press the button to fetch string."
@@ -319,8 +327,9 @@ public final class StringViewModel: ObservableObject {
 
 import SwiftUI
 
-// 変更点: ViewModel は @StateObject。init で渡し、_viewModel = StateObject(wrappedValue:) で初期化。
-// Text の文字列補間は \\ を使わない（エスケープ不具合回避）。
+// 10. アプリView層
+///  ViewModel は @StateObject。init で渡し、_viewModel = StateObject(wrappedValue:) で初期化。
+/// Text の文字列補間は \\ を使わない（エスケープ不具合回避）。
 public struct ContentView: View {
     @StateObject private var viewModel: StringViewModel
 
@@ -375,7 +384,8 @@ public struct ContentView: View {
 
 import Foundation
 
-// 変更点: App 固有 Manager と Shared を束ね、ViewModel の生成専用メソッドを提供。
+// 11. アプリ固有DIコンテナ
+/// App 固有 Manager と Shared を束ね、ViewModel の生成専用メソッドを提供。
 @MainActor
 public final class AppDependencies {
     public let stringManager: StringManager
@@ -396,6 +406,7 @@ public final class AppDependencies {
 
 import SwiftUI
 
+// 12. エントリーポイント
 @main
 struct StringApp: App {
     // 変更点: App 起動時に依存を構築し、ViewModel を注入
