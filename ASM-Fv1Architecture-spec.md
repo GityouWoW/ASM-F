@@ -8,7 +8,6 @@ ASM-F (ActorStream MVVM with Factories & SharedDependencies) は、Swift 6の並
 ### 1. 汎用的な状態管理 (LoadState)
 **役割**: アプリ全体で利用される、データ読み込み状態を表現する汎用Enum
 
-```swift
 enum LoadState<Value> {
     case idle
     case loading
@@ -374,29 +373,31 @@ ViewにViewModelを注入: ContentView(viewModel: dependencies.makeStringViewMod
 アプリ全体の依存関係グラフのルート
 
 状態の流れ
-
 Service → Manager → AsyncStream → ViewModel → @Published → View
-重要な設計原則
 
-並行性
-Swift 6 strict concurrency準拠
-actorで状態の排他制御
-@MainActorでUI更新の安全性
-actor内でselfの初期化順序に注意
-エラー処理
-CancellationErrorを含む全エラーをUI層で適切に表示
-mapErrorToMessageでユーザー向けメッセージに変換
-エラー状態もLoadStateで統一的に管理
-テスタビリティ
-Protocol駆動設計
-DIコンテナでモック注入可能
-SharedDependencies.mockでテスト用インスタンス生成
-メモリ管理
-[weak self]でメモリリーク防止
-deinitでTaskをキャンセル
-onTerminationでストリームのクリーンアップ
+## 重要な設計原則
+- LoadStateは必ず実装
+- Service層は必ず実装
 
-使用例
+## 並行性
+- Swift 6 strict concurrency準拠
+- actorで状態の排他制御
+- @MainActorでUI更新の安全性
+- actor内でselfの初期化順序に注意
+## エラー処理
+- CancellationErrorを含む全エラーをUI層で適切に表示
+- mapErrorToMessageでユーザー向けメッセージに変換
+- エラー状態もLoadStateで統一的に管理
+## テスタビリティ
+- Protocol駆動設計
+- DIコンテナでモック注入可能
+- SharedDependencies.mockでテスト用インスタンス生成
+## メモリ管理
+- [weak self]でメモリリーク防止
+- deinitでTaskをキャンセル
+- onTerminationでストリームのクリーンアップ
+
+## 使用例
 
 新しい機能を追加する場合の手順:
 Protocol定義 (Layer 6): NewFeatureServiceProtocol
