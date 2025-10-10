@@ -411,7 +411,9 @@ App Entry Pointで使用 (Layer 12): NewFeatureView(viewModel: dependencies.make
 共有機能を追加する場合は、Layer 2-5を使用し、SharedDependenciesに追加します。
 
 ### SwiftData
-- ViewのinitではViewModelを作らず、Viewのbodyの外側（例えばAppのScene階層）で@StateObjectのViewModelを生成し、environmentObjectで注入するのが安全です。
+- ModelContext の扱い
+ViewModel が保持しない。ViewModel に都度引数で渡す
+メイン UI 操作は @MainActor で行う。バックグラウンド処理は new ModelContext を生成
 
 # AIがコード生成時にチェック漏れを起こしたエラーリスト
 https://github.com/GityouWoW/AIPrompt/blob/main/errorAvoidance
