@@ -525,6 +525,27 @@ Service → Manager → AsyncStream → ViewModel → @Published → View
 - Reference to generic type 'ScrollViewReader' requires arguments in <...>
 - sendMessage の replyHandler を使う場合、受信側で didReceiveMessage:replyHandler: を必ず実装（未実装だと受信失敗）
 
+次回このプロジェクトを生成・改修するときは、以下を必ず満たしてください(例:タイマーアプリ):
+
+- タイマーのtickerタスクは Task キャンセルを厳密に尊重すること
+  - ループは `while !Task.isCancelled`
+  - `Task.sleep` は `do/catch` で `CancellationError` を受け、即 `break`
+  - `stop`/`stopInternal` では `tickTask?.cancel()` 後に `await tickTask?.value` で終了を待機
+- スナップショット保存の頻度を約1秒にスロットルすること
+  - 毎tickや高頻度で UserDefaults へ書き込まない
+  - 可能ならイベントドリブン（開始/一時停止/再開/終了/設定変更）も併用
+- スリープ間隔（現在値）は変更しないこと（「2以外を実装」要求の厳守）
+- 目的: 高CPU使用率の抑制（キャンセル後の高速スピン防止＋書き込み頻度削減）
+- 既存のポモドーロ遷移/通知挙動は変更しない（後方互換を維持）
+- Swift 6 strict concurrency に準拠。タイマー制御は actor で排他・直列化
+- 必要に応じて、意図を示すコメント（キャンセル尊重・スロットリング理由）をコード内に付与
+
+受け入れ基準:
+- キャンセル後に ticker が回り続けない（Time Profilerでスピンが消える）
+- スナップショット保存が1秒程度以下の頻度に抑制される
+- スリープ間隔の数値は一切変更されていない
+- 既存の通知・自動遷移仕様が保持される
+
 ---
 
 ## 避けるべきアンチパターン
