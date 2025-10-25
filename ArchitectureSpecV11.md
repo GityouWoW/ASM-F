@@ -546,6 +546,15 @@ Service → Manager → AsyncStream → ViewModel → @Published → View
 - スリープ間隔の数値は一切変更されていない
 - 既存の通知・自動遷移仕様が保持される
 
+   // PERMANENT NOTE:
+            // - Do NOT use `while true` + `try? await Task.sleep(...)`. When the task is cancelled,
+            //   `Task.sleep` throws CancellationError immediately; swallowing it causes a tight spin
+            //   (100% CPU) and continuous allocations. Always check cancellation and break on error.
+            // - Keep polling at ~1Hz. Sub-second polling forces constant re-layout and animation,
+            //   increasing CPU usage and memory churn over time.
+            // - Do NOT animate periodic state updates (avoid `withAnimation` here). Animate only on
+            //   user-driven interactions. This prevents constant implicit animation transactions.
+
 ---
 
 ## 避けるべきアンチパターン
